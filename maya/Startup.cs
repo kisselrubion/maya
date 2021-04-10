@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Swagger;
 
 namespace maya
 {
@@ -24,6 +26,10 @@ namespace maya
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddControllersWithViews();
+			services.AddSwaggerGen(x =>
+			{
+				x.SwaggerDoc("v1" , new OpenApiInfo{ Title = "Maya API" , Version = "v1"} );
+			});
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -35,10 +41,23 @@ namespace maya
 			}
 			else
 			{
-				app.UseExceptionHandler("/Home/Error");
-				// The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
 				app.UseHsts();
 			}
+
+			//just mocking the data into a new object
+			var swaggerOptions = new Options.SwaggerOptions();
+			Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
+
+			app.UseSwagger(option =>
+			{
+				option.RouteTemplate = swaggerOptions.JsonRoute;
+			});
+
+			app.UseSwaggerUI(option =>
+			{
+				option.SwaggerEndpoint(swaggerOptions.UiEndpoint, swaggerOptions.Description);
+			});
+
 			app.UseHttpsRedirection();
 			app.UseStaticFiles();
 

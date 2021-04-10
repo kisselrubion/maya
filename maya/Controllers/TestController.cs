@@ -8,7 +8,7 @@ namespace maya.Controllers
 {
 	public class TestController : Controller
 	{
-		[HttpGet("api/user")]
+		[HttpGet("api/v1/user")]
 		public IActionResult Get()
 		{
 			return Ok(new {name = "firstname Lastname"});
