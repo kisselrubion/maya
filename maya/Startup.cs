@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using maya.Installers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Swagger;
 
@@ -25,11 +26,7 @@ namespace maya
 		// This method gets called by the runtime. Use this method to add services to the container.
 		public void ConfigureServices(IServiceCollection services)
 		{
-			services.AddControllersWithViews();
-			services.AddSwaggerGen(x =>
-			{
-				x.SwaggerDoc("v1" , new OpenApiInfo{ Title = "Maya API" , Version = "v1"} );
-			});
+			services.InstallServicesInAssembly(Configuration);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
