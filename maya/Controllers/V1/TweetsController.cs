@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using maya.Contracts;
 using maya.Contracts.V1;
 using maya.Contracts.V1.Requests;
@@ -10,29 +11,30 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace maya.Controllers.V1
 {
-	public class TweetsController :Controller
+	public class TweetsController : Controller
 	{
 		private readonly ITweetService _tweetService;
+
 		public TweetsController(ITweetService tweetService)
 		{
 			_tweetService = tweetService;
 		}
 
 		[HttpGet(ApiRoutes.Tweets.GetAll)]
-		public IActionResult GetAll()
+		public async Task<IActionResult> GetAll()
 		{
-			return Ok(_tweetService.GetTweets());
+			return Ok(await _tweetService.GetTweetsAsync());
 		}
 
 		[HttpPut(ApiRoutes.Tweets.Update)]
-		public IActionResult Update([FromRoute] Guid tweetId,[FromBody] UpdatePostRequest request)
+		public async Task<IActionResult> Update([FromRoute] Guid tweetId, [FromBody] UpdatePostRequest request)
 		{
 			var tweet = new Tweet
 			{
 				Id = tweetId,
 				Name = request.Name
 			};
-			var updated = _tweetService.UpdateTweet(tweet);
+			var updated = await _tweetService.UpdateTweetAsync(tweet);
 			if (updated)
 				return Ok(tweet);
 
@@ -40,9 +42,9 @@ namespace maya.Controllers.V1
 		}
 
 		[HttpDelete(ApiRoutes.Tweets.Delete)]
-		public IActionResult Delete([FromRoute] Guid tweetId)
+		public async Task<IActionResult> Delete([FromRoute] Guid tweetId)
 		{
-			var deleted = _tweetService.DeleteTweet(tweetId);
+			var deleted = await _tweetService.DeleteTweetAsync(tweetId);
 			if (deleted)
 				return NoContent();
 			return NotFound();
@@ -50,28 +52,30 @@ namespace maya.Controllers.V1
 
 
 		[HttpGet(ApiRoutes.Tweets.Get)]
-		public IActionResult Get([FromRoute] Guid tweetId)
+		public async Task<IActionResult> Get([FromRoute] Guid tweetId)
 		{
-			var tweet = _tweetService.GetTweetById(tweetId);
+			var tweet = await _tweetService.GetTweetByIdAsync(tweetId);
 
-			if (tweet == null) 
+			if (tweet == null)
 				return NotFound();
 
 			return Ok(tweet);
 		}
 
 		[HttpPost(ApiRoutes.Tweets.Create)]
-		public IActionResult Create([FromBody] CreatePostRequest tweetRequest)
+		public async Task<IActionResult> Create([FromBody] CreatePostRequest tweetRequest)
 		{
-			var tweet = new Tweet {Id = tweetRequest.Id};
-			if (tweet.Id != Guid.Empty)
-				tweet.Id = Guid.NewGuid();
+			var tweet = new Tweet
+			{
+				Name = tweetRequest.Name,
+			};
 
+			await _tweetService.CreateTweetAsync(tweet);
 			var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host.ToUriComponent()}";
-			var locationUri = baseUrl + "/" + ApiRoutes.Tweets.Get.Replace("{tweetId}", tweet.ToString());
+			var locationUri = baseUrl + "/" + ApiRoutes.Tweets.Get.Replace("{tweetId}", tweet.Id.ToString());
 
-			var response = new PostResponse {Id = tweet.Id};
-			return Created(locationUri,response);
+			var response = new PostResponse{ Id = tweet.Id};
+			return Created(locationUri, response);
 		}
 	}
 }

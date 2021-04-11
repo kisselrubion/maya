@@ -1,61 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using maya.Data;
 using maya.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace maya.Services
 {
 	public class TweetService : ITweetService
 	{
+		private readonly DataContext _dataContext;
 
-		private readonly List<Tweet> _tweets;
-
-		public TweetService()
+		public TweetService(DataContext dataContext)
 		{
-			_tweets = new List<Tweet>();
-			//mock initial tweets
-			for (int i = 0; i < 5; i++)
-			{
-				_tweets.Add(new Tweet
-				{
-					Id = Guid.NewGuid(),
-					Name = $"Tweet Name{i}"
-				});
-			}
+			_dataContext = dataContext;
 		}
 
-		public List<Tweet> GetTweets()
+		public async Task<List<Tweet>> GetTweetsAsync()
 		{
-			return _tweets;
+			return await _dataContext.Tweets.ToListAsync();
 		}
 
-		public Tweet GetTweetById(Guid tweetId)
+		public async Task<Tweet> GetTweetByIdAsync(Guid tweetId)
 		{
-			return _tweets.SingleOrDefault(c => c.Id == tweetId);
+			return await _dataContext.Tweets.SingleOrDefaultAsync(c => c.Id == tweetId);
 		}
 
-		public bool UpdateTweet(Tweet tweetToUpdate)
+		public async Task<bool> CreateTweetAsync(Tweet tweet)
 		{
-			var exists = GetTweetById(tweetToUpdate.Id) != null;
-			if (!exists)
-			{
-				return false;
-			}
-
-			var index = _tweets.FindIndex(c => c.Id == tweetToUpdate.Id);
-			_tweets[index] = tweetToUpdate;
-			return true;
+			await _dataContext.AddAsync(tweet);
+			var created = await _dataContext.SaveChangesAsync();
+			return created > 0;
+		}
+		public async Task<bool> UpdateTweetAsync(Tweet tweetToUpdate)
+		{
+			_dataContext.Tweets.Update(tweetToUpdate);
+			var updated= await _dataContext.SaveChangesAsync();
+			return updated > 0;
 		}
 
-		public bool DeleteTweet(Guid tweetId)
+		public async Task<bool> DeleteTweetAsync(Guid tweetId)
 		{
-			var tweet = GetTweetById(tweetId);
+			var tweet = await GetTweetByIdAsync(tweetId);
 			if (tweet == null)
 			{
 				return false;
 			}
-			_tweets.Remove(tweet);
-			return true;
+			_dataContext.Tweets.Remove(tweet);
+			var deleted = await _dataContext.SaveChangesAsync();
+			return deleted > 0;
 		}
 	}
 }
