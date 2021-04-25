@@ -7,5 +7,6 @@ namespace maya
 {
     interface ITest
     {
+      public string GetUsersList { get; set; }
     }
 }
