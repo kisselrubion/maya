@@ -7,6 +7,9 @@ namespace maya
 {
     interface ITest
     {
+        public int GetId { get; set; }
+        public string GetAuth { get; set; }
+
       public string GetUsersList { get; set; }
     }
 }
