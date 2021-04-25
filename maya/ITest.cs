@@ -11,5 +11,6 @@ namespace maya
         public string GetAuth { get; set; }
 
       public string GetUsersList { get; set; }
+      public bool DeleteUser { get; set; }
     }
 }
